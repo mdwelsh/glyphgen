@@ -1,2 +1,2 @@
-language = "python3"
-run = "python3 ./glyphgen.py"
+language = "html"
+run = "js/index.html"
