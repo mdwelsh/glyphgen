@@ -1,19 +1,32 @@
-// This is a program that generates glyphs in the Frisu script.
+// This is a program that generates glyphs in the Frísú script.
 
 const GRID = 20;
 
-var ctx = new C2S(GRID * 10, GRID * 10);
+var ctx = new C2S(GRID * 30, GRID * 10);
 var svg = document.getElementById('svg');
 
 const GLYPHS = {
-  'tho': [frown, slash, smile],
-  'lhii': [frown, leftBar, smile],
-  'lhi': [frown, rightBar, smile]
+  // Format is: Top, middle, bottom, is-ascender
+  'fa': [frown, rightBar, lowerDash, false],
+  'fu': [frown, rightBar, frownR, false],
+  'tho': [frown, slash, smile, true],
+  'lhii': [frown, leftBar, smile, true],
+  'lhi': [frown, rightBar, smile, true],
+  'sa': [frown, backslash, circleTR, true],
+  'so': [frown, slash, circleTL, true],
+  'si': [smileL, backslash, circleTR, true],
+  'sii': [smileR, slash, circleTL, true],
 };
 
 //////////////////////////////////////////////////////////////
 /// Atom functions below
 //////////////////////////////////////////////////////////////
+
+function dot(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/5, 0, 2 * Math.PI, false);
+  ctx.stroke();
+}
 
 function smile(ctx) {
   ctx.beginPath();
@@ -26,6 +39,28 @@ function smile(ctx) {
   ctx.stroke();
 }
 
+function smileL(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, Math.PI, false);
+  ctx.stroke();
+  ctx.moveTo(0, GRID);
+  ctx.lineTo(0, 0);
+  ctx.moveTo(GRID, GRID/2);
+  ctx.lineTo(GRID, 0);
+  ctx.stroke();
+}
+
+function smileR(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, Math.PI, false);
+  ctx.stroke();
+  ctx.moveTo(0, GRID/2);
+  ctx.lineTo(0, 0);
+  ctx.moveTo(GRID, GRID);
+  ctx.lineTo(GRID, 0);
+  ctx.stroke();
+}
+
 function frown(ctx) {
   ctx.beginPath();
   ctx.arc(GRID/2, GRID/2, GRID/2, 0, Math.PI, true);
@@ -33,6 +68,28 @@ function frown(ctx) {
   ctx.moveTo(0, GRID/2);
   ctx.lineTo(0, GRID);
   ctx.moveTo(GRID, GRID/2);
+  ctx.lineTo(GRID, GRID);
+  ctx.stroke();
+}
+
+function frownL(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, Math.PI, true);
+  ctx.stroke();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, GRID);
+  ctx.moveTo(GRID, GRID/2);
+  ctx.lineTo(GRID, GRID);
+  ctx.stroke();
+}
+
+function frownR(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, Math.PI, true);
+  ctx.stroke();
+  ctx.moveTo(0, GRID/2);
+  ctx.lineTo(0, GRID);
+  ctx.moveTo(GRID, 0);
   ctx.lineTo(GRID, GRID);
   ctx.stroke();
 }
@@ -49,8 +106,40 @@ function lowerDash(ctx) {
   ctx.stroke();
 }
 
+function circleBR(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, 2*Math.PI, true);
+  ctx.moveTo(GRID, GRID/2);
+  ctx.lineTo(GRID, GRID);
+  ctx.stroke();
+}
+
+function circleBL(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, 2*Math.PI, true);
+  ctx.moveTo(0, GRID/2);
+  ctx.lineTo(0, GRID);
+  ctx.stroke();
+}
+
+function circleTR(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, 2*Math.PI, true);
+  ctx.moveTo(GRID, 0);
+  ctx.lineTo(GRID, GRID/2);
+  ctx.stroke();
+}
+
+function circleTL(ctx) {
+  ctx.beginPath();
+  ctx.arc(GRID/2, GRID/2, GRID/2, 0, 2*Math.PI, true);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, GRID/2);
+  ctx.stroke();
+}
+
 function circle(ctx) {
-    ctx.beginPath();
+  ctx.beginPath();
   ctx.arc(GRID/2, GRID/2, GRID/2, 0, 2*Math.PI, true);
   ctx.stroke();
 }
@@ -98,51 +187,76 @@ function draw_glyph(ctx, upper, middle, lower) {
 
 function glyph(ctx, key) {
   pieces = GLYPHS[key];
+  ctx.save();
+  if (!pieces[3]) {
+    ctx.translate(0, GRID * 2);
+  }
   draw_glyph(ctx, pieces[0], pieces[1], pieces[2]);
+  ctx.restore();
 }
 
-///////////////////////////////////////////////////////////////////
-/// Glyph functions below
-///////////////////////////////////////////////////////////////////
+function glyphs(ctx, keys) {
+  ctx.save();
+  ctx.translate(0, GRID * 3);
+  dot(ctx);
+  ctx.restore();
 
-// function glyph_tho(ctx) {
-//   draw_glyph(ctx, frown, slash, smile);
-// }
+  for (let index in keys) {
+    if (keys[index] == "EOW") {
+      ctx.save();
+      //ctx.translate(-GRID, 0);
+      let prev_glyph = GLYPHS[keys[index-1]];
+      if (prev_glyph[3]) {
+        // Previous glyph is an ascender.
+        ctx.translate(0, GRID * 4);
+      } else {
+        // Previous glyph is a descender.
+        ctx.translate(0, GRID * 2);
+      }
+      dot(ctx);
+      ctx.restore();
+    } else {    
+      glyph(ctx, keys[index]);
+      ctx.translate(GRID, 0);
+    }
+  }
 
-// function glyph_lhii(ctx) {
-//   draw_glyph(ctx, frown, leftBar, smile);
-// }
+  ctx.save();
+  ctx.translate(GRID, GRID * 3);
+  dot(ctx);
+  ctx.translate(GRID, 0);
+  ctx.restore();
 
-// function glyph_lhi(ctx) {
-//   draw_glyph(ctx, frown, rightBar, smile);
-// }
+}
 
 ///////////////////////////////////////////////////////////////////
 // Main code below
 ///////////////////////////////////////////////////////////////////
 
 // Draw the grid so we can see it.
+ctx.save();
 ctx.strokeStyle = "#c0c0c0";
-ctx.strokeRect(0, 0, (GRID * 5), (GRID * 5));
-for (var x = 0; x < 5; x++) {
+ctx.strokeRect(0, 0, (GRID * 30), (GRID * 10));
+for (var x = 0; x < 30; x++) {
   ctx.moveTo(x * GRID, 0);
-  ctx.lineTo(x * GRID, GRID * 5);
+  ctx.lineTo(x * GRID, GRID * 30);
   ctx.stroke();
 }
-for (var y = 0; y < 5; y++) {
+for (var y = 0; y < 30; y++) {
   ctx.moveTo(0, y * GRID);
-  ctx.lineTo(GRID * 5, y * GRID);
+  ctx.lineTo(GRID * 30, y * GRID);
   ctx.stroke();
 }
+ctx.restore();
 
-// Draw a single glyph.
-ctx.strokeStyle = "#0000ff";
+// Set the main context.
+ctx.strokeStyle = "#000000";
+ctx.fillStyle = 'black';
+ctx.lineCap = 'round';
 ctx.lineWidth = 3;
-glyph(ctx, 'lhi');
 
-
-
-
+// Draw some glyphs.
+glyphs(ctx, ['fu', 'lhii', 'EOW', 'fa', 'fu', 'EOW', 'so', 'lhii', 'lhii', 'fa']);
 
 // Finally, draw the SVG into the HTML document.
 svg.appendChild(ctx.getSvg());
