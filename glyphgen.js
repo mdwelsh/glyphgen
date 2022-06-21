@@ -1,6 +1,7 @@
 // This is a program that generates glyphs in the Frísú script.
 
 const GRID = 20;
+const SHOWGRID = false;
 
 var ctx = new C2S(GRID * 30, GRID * 10);
 var svg = document.getElementById('svg');
@@ -23,9 +24,12 @@ const GLYPHS = {
 //////////////////////////////////////////////////////////////
 
 function dot(ctx) {
+  ctx.save();
+  ctx.lineWidth = GRID/7;
   ctx.beginPath();
-  ctx.arc(GRID/2, GRID/2, GRID/5, 0, 2 * Math.PI, false);
+  ctx.arc(GRID/2, GRID/2, GRID/15, 0, 2 * Math.PI, false);
   ctx.stroke();
+  ctx.restore();
 }
 
 function smile(ctx) {
@@ -226,7 +230,17 @@ function glyphs(ctx, keys) {
   dot(ctx);
   ctx.translate(GRID, 0);
   ctx.restore();
+}
 
+function downloadSVG() {
+  let svgdata = ctx.getSerializedSvg();
+
+   var link = document.createElement('a');
+   link.setAttribute('href', 'data:image/svg+xml,' + encodeURIComponent(svgdata));
+   link.setAttribute('download', "glyphs.svg");
+   link.style.display = 'none';
+   document.body.appendChild(link);
+   link.click();
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -234,20 +248,23 @@ function glyphs(ctx, keys) {
 ///////////////////////////////////////////////////////////////////
 
 // Draw the grid so we can see it.
-ctx.save();
-ctx.strokeStyle = "#c0c0c0";
-ctx.strokeRect(0, 0, (GRID * 30), (GRID * 10));
-for (var x = 0; x < 30; x++) {
-  ctx.moveTo(x * GRID, 0);
-  ctx.lineTo(x * GRID, GRID * 30);
-  ctx.stroke();
+if (SHOWGRID) {
+  ctx.save();
+  ctx.strokeStyle = "#c0c0c0";
+  ctx.strokeRect(0, 0, (GRID * 30), (GRID * 7));
+  for (var x = 0; x < 30; x++) {
+    ctx.moveTo(x * GRID, 0);
+    ctx.lineTo(x * GRID, GRID * 7);
+    ctx.stroke();
+  }
+  for (var y = 0; y < 7; y++) {
+    ctx.moveTo(0, y * GRID);
+    ctx.lineTo(GRID * 30, y * GRID);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
-for (var y = 0; y < 30; y++) {
-  ctx.moveTo(0, y * GRID);
-  ctx.lineTo(GRID * 30, y * GRID);
-  ctx.stroke();
-}
-ctx.restore();
+
 
 // Set the main context.
 ctx.strokeStyle = "#000000";
